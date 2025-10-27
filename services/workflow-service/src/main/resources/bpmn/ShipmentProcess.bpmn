@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             targetNamespace="http://example.com/workflows">
+  <process id="ShipmentProcess" name="Shipment Process" isExecutable="true">
+    <startEvent id="start" name="Sandbox Ready"/>
+    <sequenceFlow id="s1" sourceRef="start" targetRef="dispatch"/>
+    <serviceTask id="dispatch" name="Capture Dispatch Data" flowable:type="http"/>
+    <sequenceFlow id="s2" sourceRef="dispatch" targetRef="record"/>
+    <serviceTask id="record" name="Record On Chain" flowable:type="http"/>
+    <sequenceFlow id="s3" sourceRef="record" targetRef="end"/>
+    <endEvent id="end" name="Shipment Dispatched"/>
+  </process>
+</definitions>
