@@ -1,0 +1,127 @@
+openapi: 3.0.3
+info:
+  title: Workflow Service API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8092
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+  /workflow/processes/{key}/start:
+    post:
+      summary: Start BPMN process
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartProcessRequest'
+      responses:
+        '202':
+          description: Process started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcessInstance'
+  /workflow/tasks/{id}/complete:
+    post:
+      summary: Complete task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompleteTaskRequest'
+      responses:
+        '202':
+          description: Task completion requested
+  /workflow/signals/{signal}:
+    post:
+      summary: Send BPMN signal
+      parameters:
+        - name: signal
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignalRequest'
+      responses:
+        '202':
+          description: Signal dispatched
+components:
+  schemas:
+    StartProcessRequest:
+      type: object
+      properties:
+        tenantId:
+          type: string
+        businessKey:
+          type: string
+        variables:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+        - tenantId
+    ProcessInstance:
+      type: object
+      properties:
+        id:
+          type: string
+        processDefinitionId:
+          type: string
+        businessKey:
+          type: string
+        tenantId:
+          type: string
+        ended:
+          type: boolean
+    CompleteTaskRequest:
+      type: object
+      properties:
+        tenantId:
+          type: string
+        processDefinitionKey:
+          type: string
+        variables:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+        - tenantId
+        - processDefinitionKey
+    SignalRequest:
+      type: object
+      properties:
+        tenantId:
+          type: string
+        processDefinitionKey:
+          type: string
+        variables:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+        - tenantId
+        - processDefinitionKey

@@ -1,0 +1,251 @@
+openapi: 3.0.3
+info:
+  title: KMS Service API
+  version: 0.1.0
+  description: >
+    REST interface exposed by the kms-service for key lifecycle operations such as
+    tenant master key issuance, envelope wrapping, session key derivation and metadata queries.
+servers:
+  - url: https://kms.local
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  service:
+                    type: string
+  /keys/tenants/{tenantId}/tmk:
+    post:
+      summary: Issue a tenant master key
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Created TMK version descriptor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TmkVersionDescriptor'
+  /keys/wrap-dek:
+    post:
+      summary: Wrap a data encryption key under the active TMK
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WrapDekRequest'
+      responses:
+        '200':
+          description: Wrapped DEK material
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WrappedDekResponse'
+  /keys/unwrap-dek:
+    post:
+      summary: Unwrap a DEK under the active TMK
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnwrapDekRequest'
+      responses:
+        '200':
+          description: Plaintext DEK payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnwrappedDekResponse'
+  /keys/derive/ssk:
+    post:
+      summary: Derive a sandbox session key using HKDF
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeriveSessionKeyRequest'
+      responses:
+        '200':
+          description: Derived session key in base64 form
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeriveSessionKeyResponse'
+  /keys/{tenantId}/metadata:
+    get:
+      summary: List TMK metadata for tenant
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Array of TMK versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TmkVersionDescriptor'
+  /keys/{tenantId}/invalidate/{version}:
+    post:
+      summary: Invalidate a TMK version
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvalidateTmkRequest'
+      responses:
+        '200':
+          description: Invalidation accepted
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    TmkVersionDescriptor:
+      type: object
+      properties:
+        tenantId:
+          type: string
+        tmkId:
+          type: string
+        version:
+          type: integer
+        status:
+          type: string
+          enum: [ACTIVE, PENDING_ROTATION, DISABLED, COMPROMISED]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    WrapDekRequest:
+      type: object
+      required: [tenantId, dekPlain]
+      properties:
+        tenantId:
+          type: string
+        dekPlain:
+          type: string
+          description: Base64 encoded plaintext DEK
+        tmkVersion:
+          type: integer
+          nullable: true
+    WrappedDekResponse:
+      type: object
+      properties:
+        tenantId:
+          type: string
+        tmkId:
+          type: string
+        tmkVersion:
+          type: integer
+        wrappedDek:
+          type: string
+          description: Base64 encoded wrapped DEK
+        dekAlgo:
+          type: string
+        tmkAlgo:
+          type: string
+    UnwrapDekRequest:
+      type: object
+      required: [tenantId, wrappedDek]
+      properties:
+        tenantId:
+          type: string
+        wrappedDek:
+          type: string
+        tmkVersion:
+          type: integer
+          nullable: true
+    UnwrappedDekResponse:
+      type: object
+      properties:
+        tenantId:
+          type: string
+        tmkId:
+          type: string
+        tmkVersion:
+          type: integer
+        dekPlain:
+          type: string
+          description: Base64 encoded plaintext DEK
+    DeriveSessionKeyRequest:
+      type: object
+      required: [tenantId, sessionNonce, context]
+      properties:
+        tenantId:
+          type: string
+        sessionNonce:
+          type: string
+          description: Base64 encoded nonce used as HKDF salt
+        context:
+          type: string
+        tmkVersion:
+          type: integer
+          nullable: true
+    DeriveSessionKeyResponse:
+      type: object
+      properties:
+        tenantId:
+          type: string
+        tmkId:
+          type: string
+        tmkVersion:
+          type: integer
+        sessionKey:
+          type: string
+          description: Base64 encoded session key material
+    InvalidateTmkRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [DISABLED, COMPROMISED]
