@@ -1,0 +1,164 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: platform
+      POSTGRES_USER: platform
+      POSTGRES_PASSWORD: platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U platform"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.1
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "29092:29092"
+
+  minio:
+    image: minio/minio:RELEASE.2023-12-23T07-19-11Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.5
+    command: start --auto-build --hostname-strict=false
+    environment:
+      KC_DB: dev-mem
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8081:8080"
+
+  infisical:
+    image: infisical/infisical:0.14.2
+    environment:
+      INFISICAL_ENCRYPTION_KEY: dev-infisical-key
+      MONGO_URL: mongodb://infisical-mongo:27017/infisical
+      REDIS_URL: redis://infisical-redis:6379
+    depends_on:
+      - infisical-mongo
+      - infisical-redis
+    ports:
+      - "8082:8080"
+
+  infisical-mongo:
+    image: mongo:6
+    volumes:
+      - infisical_mongo:/data/db
+
+  infisical-redis:
+    image: redis:7-alpine
+
+  flowable:
+    image: flowable/all-in-one:latest
+    environment:
+      FLOWABLE_DB_DRIVER: org.h2.Driver
+    ports:
+      - "8090:8080"
+
+  softhsm:
+    image: ghcr.io/ninja-builders/softhsm2:latest
+    environment:
+      SOFTHSM2_CONF: /softhsm2.conf
+    volumes:
+      - softhsm_data:/var/lib/softhsm
+
+  fabric-ca:
+    image: hyperledger/fabric-ca:1.5
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca-org1
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_SERVER_PORT=7054
+    ports:
+      - "7054:7054"
+    volumes:
+      - fabric_ca:/etc/hyperledger/fabric-ca-server
+
+  fabric-orderer:
+    image: hyperledger/fabric-orderer:2.5
+    environment:
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_LISTENPORT=7050
+      - ORDERER_GENERAL_LOGLEVEL=info
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+    ports:
+      - "7050:7050"
+    volumes:
+      - fabric_orderer:/var/hyperledger/orderer
+
+  fabric-peer:
+    image: hyperledger/fabric-peer:2.5
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      - CORE_PEER_ADDRESS=fabric-peer:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:9443
+    ports:
+      - "7051:7051"
+      - "9443:9443"
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock
+      - fabric_peer:/var/hyperledger/production
+
+  kms-service:
+    build:
+      context: .
+      dockerfile: services/kms-service/Dockerfile
+    depends_on:
+      - postgres
+      - infisical
+      - softhsm
+    environment:
+      JDBC_URL: jdbc:postgresql://postgres:5432/platform
+      JDBC_USERNAME: platform
+      JDBC_PASSWORD: platform
+      INFISICAL_BASE_URL: http://infisical:8080
+      INFISICAL_WORKSPACE: foundation
+      INFISICAL_ENVIRONMENT: dev
+      INFISICAL_SERVICE_TOKEN: dev-token
+      PKCS11_ENABLED: "false"
+      DEV_BYPASS_TOKEN: dev-token
+    ports:
+      - "8088:8080"
+
+volumes:
+  postgres_data:
+  minio_data:
+  infisical_mongo:
+  softhsm_data:
+  fabric_ca:
+  fabric_orderer:
+  fabric_peer:
