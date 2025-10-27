@@ -9,11 +9,20 @@ dependencies {
     implementation(project(":libs:crypto-lib"))
     implementation(project(":libs:kms-client"))
     implementation(Deps.kotlinStdlib)
+    implementation(Deps.kotlinReflect)
     implementation(Deps.ktorServerCore)
     implementation(Deps.ktorServerNetty)
     implementation(Deps.ktorServerContentNegotiation)
     implementation(Deps.ktorSerializationJson)
+    implementation(Deps.ktorServerCallLogging)
     implementation(Deps.logbackClassic)
+    implementation(Deps.coroutinesCore)
+    implementation(Deps.ktorClientCore)
+    implementation(Deps.ktorClientCio)
+    implementation(Deps.ktorClientContentNegotiation)
+    implementation(Deps.ktorClientAuth)
+    implementation(Deps.ktorClientLogging)
+    implementation(Deps.kafkaClients)
 }
 
 application {

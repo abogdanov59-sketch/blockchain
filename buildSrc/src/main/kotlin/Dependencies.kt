@@ -30,6 +30,7 @@ object Deps {
     const val ktorClientContentNegotiation = "io.ktor:ktor-client-content-negotiation:${'$'}{Versions.ktorClient}"
     const val ktorClientAuth = "io.ktor:ktor-client-auth:${'$'}{Versions.ktorClient}"
     const val ktorClientLogging = "io.ktor:ktor-client-logging:${'$'}{Versions.ktorClient}"
+    const val coroutinesCore = "org.jetbrains.kotlinx:kotlinx-coroutines-core:${'$'}{Versions.coroutines}"
     const val logbackClassic = "ch.qos.logback:logback-classic:${'$'}{Versions.logback}"
     const val kotlinxSerializationJson = "org.jetbrains.kotlinx:kotlinx-serialization-json:${'$'}{Versions.kotlinxSerialization}"
     const val exposedCore = "org.jetbrains.exposed:exposed-core:${'$'}{Versions.exposed}"

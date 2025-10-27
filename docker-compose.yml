@@ -154,6 +154,104 @@ services:
     ports:
       - "8088:8080"
 
+  blockchain-gateway:
+    build:
+      context: .
+      dockerfile: services/blockchain-gateway/Dockerfile
+    depends_on:
+      - fabric-peer
+    ports:
+      - "8094:8080"
+
+  data-vault-service:
+    build:
+      context: .
+      dockerfile: services/data-vault-service/Dockerfile
+    depends_on:
+      - postgres
+      - kafka
+      - minio
+      - kms-service
+    environment:
+      JDBC_URL: jdbc:postgresql://postgres:5432/platform
+      JDBC_USERNAME: platform
+      JDBC_PASSWORD: platform
+      KMS_BASE_URL: http://kms-service:8080
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_ASSET_TOPIC: vault.assets.created
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_VAULT_BUCKET: vault-assets
+      BLIND_INDEX_PEPPER_BASE64: ZGV2LXBlcHBlcg==
+    ports:
+      - "8089:8080"
+
+  sandbox-service:
+    build:
+      context: .
+      dockerfile: services/sandbox-service/Dockerfile
+    depends_on:
+      - postgres
+      - kafka
+      - minio
+      - data-vault-service
+      - kms-service
+    environment:
+      JDBC_URL: jdbc:postgresql://postgres:5432/platform
+      JDBC_USERNAME: platform
+      JDBC_PASSWORD: platform
+      KMS_BASE_URL: http://kms-service:8080
+      DATA_VAULT_BASE_URL: http://data-vault-service:8080
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_SANDBOX_TOPIC: sandbox.events
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_SANDBOX_BUCKET: sandbox-assets
+    ports:
+      - "8091:8080"
+
+  workflow-service:
+    build:
+      context: .
+      dockerfile: services/workflow-service/Dockerfile
+    depends_on:
+      - flowable
+      - kafka
+      - kms-service
+    environment:
+      KMS_BASE_URL: http://kms-service:8080
+      FLOWABLE_BASE_URL: http://flowable:8080/flowable-rest
+      FLOWABLE_USERNAME: admin
+      FLOWABLE_PASSWORD: test
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_WORKFLOW_TOPIC: workflow.events
+    ports:
+      - "8092:8080"
+
+  audit-service:
+    build:
+      context: .
+      dockerfile: services/audit-service/Dockerfile
+    depends_on:
+      - postgres
+      - kafka
+      - blockchain-gateway
+      - kms-service
+    environment:
+      JDBC_URL: jdbc:postgresql://postgres:5432/platform
+      JDBC_USERNAME: platform
+      JDBC_PASSWORD: platform
+      KMS_BASE_URL: http://kms-service:8080
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_AUDIT_TOPIC: audit.events
+      BLOCKCHAIN_GATEWAY_BASE_URL: http://blockchain-gateway:8080
+      BLOCKCHAIN_PUBLISH_ANCHORS: "true"
+      AUDIT_CHAIN_INITIAL_HASH: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+    ports:
+      - "8093:8080"
+
 volumes:
   postgres_data:
   minio_data:
