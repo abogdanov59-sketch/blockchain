@@ -1,4 +1,7 @@
+import Deps
+
 plugins {
+    kotlin("jvm")
     application
 }
 
