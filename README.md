@@ -6,8 +6,8 @@
 
 - `buildSrc` — общие версии и зависимости.
 - `libs/common-models` — DTO мастер-данных и конвертов шифрования.
-- `libs/crypto-lib` — заглушка криптобиблиотеки (nonce, zeroization).
-- `services/*` — Ktor-сервисы (identity, kms, data-vault, sandbox, workflow, blockchain-gateway, audit, api-gateway) с единым каркасом API `/health` и `/capabilities`.
+- `libs/crypto-lib` — криптобиблиотека c AES-GCM, AES-KW, HKDF, PBKDF2 и вспомогательными утилитами.
+- `services/*` — Ktor-сервисы (identity, kms, data-vault, sandbox, workflow, blockchain-gateway, audit, api-gateway). `kms-service` реализует полный набор API `/keys/*` и интеграции с PostgreSQL, SoftHSM2 (PKCS#11) и Infisical.
 - `clients/terminal-agent` — CLI-заглушка терминального агента.
 - `chaincode/asset-lifecycle` — минимальный Java chaincode для Hyperledger Fabric.
 - `docs/` — документация по ключевым потокам (будет пополняться).
@@ -29,11 +29,11 @@ gradle :services:data-vault-service:run
 
 ## Дальнейшие шаги
 
-1. Реализовать криптографический контур в `crypto-lib` и `kms-service` (wrap/unwrap, HKDF, PKCS#11 и Infisical).
-2. Добавить интеграцию с PostgreSQL, Kafka, MinIO, Flowable и Fabric SDK.
-3. Настроить docker-compose с Keycloak, Infisical, SoftHSM2 и Fabric test network.
+1. Подключить `data-vault-service`, `sandbox-service`, `workflow-service` и `audit-service` к обновленному контуру KMS.
+2. Добавить интеграцию с PostgreSQL, Kafka, MinIO, Flowable и Fabric SDK в соответствующих сервисах.
+3. Расширить docker-compose (Keycloak, Infisical, SoftHSM2, Fabric) скриптами bootstrap и CI-проверками.
 4. Реализовать песочницы, workflow и аудит согласно разделам ТЗ.
-5. Подготовить детализированную документацию в `docs/` и API спецификации в `proto/`.
+5. Подготовить детализированную документацию в `docs/` и API спецификации в `proto/` по остальным сервисам.
 
 ## Требования
 
