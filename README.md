@@ -29,7 +29,7 @@ gradle :services:data-vault-service:run
 
 ## Дальнейшие шаги
 
-1. Подключить `data-vault-service`, `sandbox-service`, `workflow-service` и `audit-service` к обновленному контуру KMS.
+1. ✅ Подключить `data-vault-service`, `sandbox-service`, `workflow-service` и `audit-service` к обновленному контуру KMS.
 2. Добавить интеграцию с PostgreSQL, Kafka, MinIO, Flowable и Fabric SDK в соответствующих сервисах.
 3. Расширить docker-compose (Keycloak, Infisical, SoftHSM2, Fabric) скриптами bootstrap и CI-проверками.
 4. Реализовать песочницы, workflow и аудит согласно разделам ТЗ.

@@ -1,10 +1,19 @@
 package com.example.kms
 
 import com.example.CryptoToolkit
+import com.example.kmsclient.DeriveSessionKeyRequest
+import com.example.kmsclient.DeriveSessionKeyResponse
+import com.example.kmsclient.InvalidateTmkRequest
+import com.example.kmsclient.TmkSecretPayload
+import com.example.kmsclient.TmkStatus
+import com.example.kmsclient.TmkVersionDescriptor
+import com.example.kmsclient.UnwrapDekRequest
+import com.example.kmsclient.UnwrappedDekResponse
+import com.example.kmsclient.WrapDekRequest
+import com.example.kmsclient.WrappedDekResponse
 import java.time.Instant
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
@@ -118,80 +127,7 @@ class TmkService(
         tmkId = tmkId,
         version = version,
         status = status,
-        createdAt = createdAt,
-        updatedAt = updatedAt
+        createdAt = createdAt.toString(),
+        updatedAt = updatedAt.toString()
     )
 }
-
-@Serializable
-data class TmkSecretPayload(
-    val tenantId: String,
-    val tmkId: String,
-    val version: Int,
-    val wrappedKey: String,
-    val algorithm: String,
-    val createdAt: String
-)
-
-@Serializable
-data class TmkVersionDescriptor(
-    val tenantId: String,
-    val tmkId: String,
-    val version: Int,
-    val status: TmkStatus,
-    val createdAt: Instant,
-    val updatedAt: Instant
-)
-
-@Serializable
-data class WrapDekRequest(
-    val tenantId: String,
-    val dekPlain: String,
-    val tmkVersion: Int? = null
-)
-
-@Serializable
-data class WrappedDekResponse(
-    val tenantId: String,
-    val tmkId: String,
-    val tmkVersion: Int,
-    val wrappedDek: String,
-    val dekAlgo: String,
-    val tmkAlgo: String
-)
-
-@Serializable
-data class UnwrapDekRequest(
-    val tenantId: String,
-    val wrappedDek: String,
-    val tmkVersion: Int? = null
-)
-
-@Serializable
-data class UnwrappedDekResponse(
-    val tenantId: String,
-    val tmkId: String,
-    val tmkVersion: Int,
-    val dekPlain: String
-)
-
-@Serializable
-data class DeriveSessionKeyRequest(
-    val tenantId: String,
-    val sessionNonce: String,
-    val context: String,
-    val tmkVersion: Int? = null
-)
-
-@Serializable
-data class DeriveSessionKeyResponse(
-    val tenantId: String,
-    val tmkId: String,
-    val tmkVersion: Int,
-    val sessionKey: String
-)
-
-@Serializable
-data class InvalidateTmkRequest(
-    val status: TmkStatus
-)

@@ -10,6 +10,7 @@ rootProject.name = "modular-platform"
 include(
     "libs:crypto-lib",
     "libs:common-models",
+    "libs:kms-client",
     "services:identity-service",
     "services:kms-service",
     "services:data-vault-service",

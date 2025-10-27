@@ -1,5 +1,6 @@
 package com.example.kms
 
+import com.example.kmsclient.TmkStatus
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -12,8 +13,6 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-
-enum class TmkStatus { ACTIVE, PENDING_ROTATION, DISABLED, COMPROMISED }
 
 data class TmkVersion(
     val tenantId: String,

@@ -7,6 +7,7 @@ apply(plugin = "org.jetbrains.kotlin.plugin.serialization")
 dependencies {
     implementation(project(":libs:common-models"))
     implementation(project(":libs:crypto-lib"))
+    implementation(project(":libs:kms-client"))
     implementation(Deps.kotlinStdlib)
     implementation(Deps.ktorServerCore)
     implementation(Deps.ktorServerNetty)
