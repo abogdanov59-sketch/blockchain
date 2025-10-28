@@ -1,6 +1,7 @@
 package com.example.kmsclient
 
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
@@ -23,31 +24,31 @@ class KmsClient(
     private val httpClient: HttpClient = defaultHttpClient(config)
 ) : Closeable {
 
-    suspend fun health(): KmsHealthResponse = httpClient.get("${config.baseUrl}/health")
+    suspend fun health(): KmsHealthResponse = httpClient.get("${config.baseUrl}/health").body()
 
     suspend fun issueTenantMasterKey(tenantId: String): TmkVersionDescriptor =
-        httpClient.post("${config.baseUrl}/keys/tenants/$tenantId/tmk")
+        httpClient.post("${config.baseUrl}/keys/tenants/$tenantId/tmk").body()
 
     suspend fun listTenantMetadata(tenantId: String): List<TmkVersionDescriptor> =
-        httpClient.get("${config.baseUrl}/keys/$tenantId/metadata")
+        httpClient.get("${config.baseUrl}/keys/$tenantId/metadata").body()
 
     suspend fun wrapDek(request: WrapDekRequest): WrappedDekResponse =
         httpClient.post("${config.baseUrl}/keys/wrap-dek") {
             contentType(ContentType.Application.Json)
             setBody(request)
-        }
+        }.body()
 
     suspend fun unwrapDek(request: UnwrapDekRequest): UnwrappedDekResponse =
         httpClient.post("${config.baseUrl}/keys/unwrap-dek") {
             contentType(ContentType.Application.Json)
             setBody(request)
-        }
+        }.body()
 
     suspend fun deriveSessionKey(request: DeriveSessionKeyRequest): DeriveSessionKeyResponse =
         httpClient.post("${config.baseUrl}/keys/derive/ssk") {
             contentType(ContentType.Application.Json)
             setBody(request)
-        }
+        }.body()
 
     suspend fun invalidateTenantMasterKey(
         tenantId: String,
