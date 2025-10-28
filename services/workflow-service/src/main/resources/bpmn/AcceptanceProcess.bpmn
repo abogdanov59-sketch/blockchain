@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             targetNamespace="http://example.com/workflows">
+  <process id="AcceptanceProcess" name="Acceptance Process" isExecutable="true">
+    <startEvent id="start" name="Artifacts Verified"/>
+    <sequenceFlow id="a1" sourceRef="start" targetRef="approval"/>
+    <userTask id="approval" name="Approve Delivery"/>
+    <sequenceFlow id="a2" sourceRef="approval" targetRef="record"/>
+    <serviceTask id="record" name="Write Ledger" flowable:type="http"/>
+    <sequenceFlow id="a3" sourceRef="record" targetRef="end"/>
+    <endEvent id="end" name="Delivery Accepted"/>
+  </process>
+</definitions>
