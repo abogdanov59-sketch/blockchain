@@ -1,0 +1,177 @@
+openapi: 3.0.3
+info:
+  title: Sandbox Service API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8091
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+  /sandbox/sessions:
+    post:
+      summary: Create sandbox session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSandboxRequest'
+      responses:
+        '201':
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SandboxSession'
+  /sandbox/sessions/{id}:
+    get:
+      summary: Fetch sandbox session metadata
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SandboxSession'
+    delete:
+      summary: Close sandbox session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: Session scheduled for cleanup
+  /sandbox/sessions/{id}/checkout:
+    post:
+      summary: Checkout encrypted asset into sandbox
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutRequest'
+      responses:
+        '200':
+          description: Sandbox record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SandboxRecord'
+  /sandbox/sessions/{id}/propose:
+    post:
+      summary: Submit diff for approval
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProposeRequest'
+      responses:
+        '202':
+          description: Proposal accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SandboxProposal'
+components:
+  schemas:
+    CreateSandboxRequest:
+      type: object
+      properties:
+        tenantId:
+          type: string
+        context:
+          type: string
+        ttlMinutes:
+          type: integer
+      required:
+        - tenantId
+    SandboxSession:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        tenantId:
+          type: string
+        context:
+          type: string
+        nonce:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+        expiresAt:
+          type: string
+    CheckoutRequest:
+      type: object
+      properties:
+        assetId:
+          type: string
+      required:
+        - assetId
+    SandboxRecord:
+      type: object
+      properties:
+        assetId:
+          type: string
+        sandboxCiphertext:
+          type: string
+        sandboxTag:
+          type: string
+        sandboxNonce:
+          type: string
+        aad:
+          type: string
+        createdAt:
+          type: string
+    ProposeRequest:
+      type: object
+      properties:
+        assetId:
+          type: string
+        diff:
+          type: string
+        comment:
+          type: string
+      required:
+        - assetId
+        - diff
+    SandboxProposal:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        assetId:
+          type: string
+        diffHash:
+          type: string
+        comment:
+          type: string
+        submittedAt:
+          type: string
