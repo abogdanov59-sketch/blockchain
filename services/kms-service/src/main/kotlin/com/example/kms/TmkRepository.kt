@@ -6,12 +6,13 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.javatime.CurrentTimestamp
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.and
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
 data class TmkVersion(

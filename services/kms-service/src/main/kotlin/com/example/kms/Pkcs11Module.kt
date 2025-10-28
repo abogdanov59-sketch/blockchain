@@ -3,13 +3,11 @@ package com.example.kms
 import com.example.CryptoToolkit
 import java.io.ByteArrayInputStream
 import java.security.KeyStore
-import java.security.Provider
 import java.security.Security
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 import org.slf4j.LoggerFactory
-import sun.security.pkcs11.SunPKCS11
 
 /**
  * Abstraction over PKCS#11 operations. Wraps/unwraps tenant master keys under the root key.
@@ -24,7 +22,7 @@ interface Pkcs11Module : AutoCloseable {
  */
 class SoftHsmPkcs11Module(config: Pkcs11Config) : Pkcs11Module {
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val provider: Provider
+    private val provider = buildProvider(config)
     private val keyStore: KeyStore
     private val rootKeyAlias: String
     private val pin: CharArray
@@ -34,12 +32,6 @@ class SoftHsmPkcs11Module(config: Pkcs11Config) : Pkcs11Module {
         require(config.userPin != null) { "PKCS11 user PIN must be provided" }
         require(config.slotId != null) { "PKCS11 slot id must be provided" }
         pin = config.userPin.copyOf()
-        val pkcs11Config = """
-            name = SoftHSM
-            library = ${config.libraryPath}
-            slot = ${config.slotId}
-        """.trimIndent()
-        provider = SunPKCS11(ByteArrayInputStream(pkcs11Config.toByteArray()))
         Security.addProvider(provider)
         keyStore = KeyStore.getInstance("PKCS11", provider).apply { load(null, pin) }
         rootKeyAlias = config.rootKeyAlias ?: error("Root key alias must be set")
@@ -66,6 +58,22 @@ class SoftHsmPkcs11Module(config: Pkcs11Config) : Pkcs11Module {
     override fun close() {
         CryptoToolkit.zeroize(pin)
         Security.removeProvider(provider.name)
+    }
+}
+
+private fun buildProvider(config: Pkcs11Config): java.security.Provider {
+    val pkcs11Config = """
+        name = SoftHSM
+        library = ${config.libraryPath}
+        slot = ${config.slotId}
+    """.trimIndent()
+    return try {
+        val constructor = Class
+            .forName("sun.security.pkcs11.SunPKCS11")
+            .getConstructor(ByteArrayInputStream::class.java)
+        constructor.newInstance(ByteArrayInputStream(pkcs11Config.toByteArray())) as java.security.Provider
+    } catch (ex: ReflectiveOperationException) {
+        throw IllegalStateException("Unable to load SunPKCS11 provider; ensure jdk.crypto.cryptoki is available", ex)
     }
 }
 

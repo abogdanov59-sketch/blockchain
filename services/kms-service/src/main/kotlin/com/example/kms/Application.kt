@@ -1,5 +1,9 @@
 package com.example.kms
 
+import com.example.kmsclient.DeriveSessionKeyRequest
+import com.example.kmsclient.InvalidateTmkRequest
+import com.example.kmsclient.UnwrapDekRequest
+import com.example.kmsclient.WrapDekRequest
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.client.HttpClient
@@ -18,6 +22,7 @@ import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.UserIdPrincipal
 import io.ktor.server.auth.authenticate
+import io.ktor.server.auth.bearer
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.engine.embeddedServer

@@ -3,10 +3,13 @@ package com.example.kms
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
@@ -18,7 +21,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import org.slf4j.LoggerFactory
-import kotlin.time.Duration
 
 /**
  * Thin REST client for Infisical secret management.
@@ -80,14 +82,13 @@ class InfisicalClient(
         }
     }
 
-    private fun HttpResponse.ensureSuccess(action: String) {
+    private suspend fun HttpResponse.ensureSuccess(action: String) {
         if (!status.isSuccess()) {
-            logger.error("Failed to {} via Infisical: status={} body={}", action, status, runCatching { bodyAsText() }.getOrNull())
+            val bodyText = runCatching { bodyAsText() }.getOrNull()
+            logger.error("Failed to {} via Infisical: status={} body={}", action, status, bodyText)
             error("Unable to $action in Infisical: $status")
         }
     }
-
-    private suspend fun HttpResponse.bodyAsText(): String = body()
 }
 
 private fun HttpStatusCode.isSuccess(): Boolean = value in 200..299
