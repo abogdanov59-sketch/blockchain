@@ -1,3 +1,6 @@
+/**
+ * Centralized dependency version definitions used across Gradle modules.
+ */
 object Versions {
     const val kotlin = "1.9.22"
     const val ktor = "2.3.8"
