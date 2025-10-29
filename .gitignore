@@ -1,0 +1,34 @@
+.gradle/
+.kotlin/
+build/
+**/build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDEs and editors
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+*.sw?
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Logs and temp files
+*.log
+*.tmp
+*.cache
+
+# Environment and secrets
+.env
+*.env.local
+
+# Docker / runtime state
+docker-data/
+compose-data/
+
+# Test containers
+.testcontainers/
