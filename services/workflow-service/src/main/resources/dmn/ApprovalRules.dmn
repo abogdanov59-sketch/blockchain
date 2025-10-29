@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
+             id="ApprovalRules"
+             name="Approval Rules"
+             namespace="http://example.com/rules">
+  <decision id="approve" name="Approval">
+    <decisionTable hitPolicy="FIRST">
+      <input id="inp1">
+        <inputExpression typeRef="string">tenantRole</inputExpression>
+      </input>
+      <output id="out1" name="approved" typeRef="boolean"/>
+      <rule>
+        <inputEntry>"auditor"</inputEntry>
+        <outputEntry>true</outputEntry>
+      </rule>
+      <rule>
+        <inputEntry>"default"</inputEntry>
+        <outputEntry>false</outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+</definitions>
