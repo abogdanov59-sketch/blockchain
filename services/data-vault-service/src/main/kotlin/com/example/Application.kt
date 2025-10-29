@@ -8,7 +8,7 @@ import com.example.kmsclient.WrapDekRequest
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStop
+import io.ktor.server.application.ApplicationStopPreparing
 import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.plugins.callloging.CallLogging
@@ -27,11 +27,12 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.jetbrains.exposed.dao.id.UUIDTable
+import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.javatime.timestamp
@@ -75,7 +76,7 @@ fun Application.module() {
     val minioClient = config.storage.createClient()
     ensureBucket(minioClient, config.storage.bucket)
 
-    environment.monitor.subscribe(ApplicationStop) {
+    environment.monitor.subscribe(ApplicationStopPreparing) {
         kafkaProducer.close()
         kmsClient.close()
         dataSource.close()
@@ -285,12 +286,12 @@ class DataVaultRepository(
                 tmkId = it[VaultAssets.tmkId],
                 tmkVersion = it[VaultAssets.tmkVersion],
                 tenantId = it[VaultAssets.tenantId],
-                assetId = it[VaultAssets.id].value.toString()
+                assetId = it[VaultAssets.id].toString()
             )
         }
     }
 
-    private fun retrieveDek(row: ResultRow, kmsClient: KmsClient): SecretKey {
+    private suspend fun retrieveDek(row: ResultRow, kmsClient: KmsClient): SecretKey {
         val unwrap = kmsClient.unwrapDek(
             UnwrapDekRequest(
                 tenantId = row[VaultAssets.tenantId],
@@ -332,7 +333,8 @@ class DataVaultRepository(
     }
 }
 
-object VaultAssets : UUIDTable("vault_assets") {
+object VaultAssets : Table("vault_assets") {
+    val id = uuid("id").primaryKey()
     val tenantId = varchar("tenant_id", 64)
     val type = varchar("type", 64)
     val metadataHash = varchar("metadata_hash", 128)
@@ -445,7 +447,6 @@ data class AssetCreatedEvent(
     val metadataHash: String
 )
 
-@Serializable
 data class DataVaultServiceConfig(
     val kms: KmsClientConfig,
     val database: DatabaseConfig,
@@ -490,7 +491,6 @@ data class DataVaultServiceConfig(
     }
 }
 
-@Serializable
 data class DatabaseConfig(val jdbcUrl: String, val username: String, val password: String) {
     fun toHikari(): HikariConfig = HikariConfig().apply {
         jdbcUrl = this@DatabaseConfig.jdbcUrl
@@ -501,7 +501,6 @@ data class DatabaseConfig(val jdbcUrl: String, val username: String, val passwor
     }
 }
 
-@Serializable
 data class KafkaConfig(val bootstrapServers: String, val assetsTopic: String) {
     fun toProperties(): Properties = Properties().apply {
         put("bootstrap.servers", bootstrapServers)
@@ -511,7 +510,6 @@ data class KafkaConfig(val bootstrapServers: String, val assetsTopic: String) {
     }
 }
 
-@Serializable
 data class StorageConfig(
     val endpoint: String,
     val accessKey: String,

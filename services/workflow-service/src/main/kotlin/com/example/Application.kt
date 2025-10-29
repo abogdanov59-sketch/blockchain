@@ -25,7 +25,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStop
+import io.ktor.server.application.ApplicationStopPreparing
 import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
@@ -78,7 +78,7 @@ fun Application.module() {
     val flowableClient = FlowableClient(httpClient, config.flowable)
     val kafkaProducer = KafkaProducer<String, String>(config.kafka.toProperties())
 
-    environment.monitor.subscribe(ApplicationStop) {
+    environment.monitor.subscribe(ApplicationStopPreparing) {
         kafkaProducer.close()
         httpClient.close()
         kmsClient.close()

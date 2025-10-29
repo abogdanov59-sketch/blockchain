@@ -8,7 +8,6 @@ import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -17,6 +16,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import java.io.Closeable
+import io.ktor.client.plugins.logging.LogLevel
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 class KmsClient(
@@ -71,7 +72,7 @@ class KmsClient(
         private fun defaultHttpClient(config: KmsClientConfig): HttpClient = HttpClient(CIO) {
             expectSuccess = true
             install(ContentNegotiation) { json(json) }
-            install(Logging) { level = config.logLevel }
+            install(Logging) { level = LogLevel.NONE }
             config.requestTimeoutMillis?.let { timeoutMillis ->
                 install(HttpTimeout) {
                     requestTimeoutMillis = timeoutMillis
@@ -91,9 +92,9 @@ class KmsClient(
     }
 }
 
+@Serializable
 data class KmsClientConfig(
     val baseUrl: String,
     val accessToken: String? = null,
-    val requestTimeoutMillis: Long? = 10_000,
-    val logLevel: LogLevel = LogLevel.NONE
+    val requestTimeoutMillis: Long? = 10_000
 )
