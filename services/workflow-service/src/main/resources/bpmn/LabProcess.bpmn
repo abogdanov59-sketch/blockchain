@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             targetNamespace="http://example.com/workflows">
+  <process id="LabProcess" name="Lab Process" isExecutable="true">
+    <startEvent id="start" name="Report Uploaded"/>
+    <sequenceFlow id="l1" sourceRef="start" targetRef="sign"/>
+    <serviceTask id="sign" name="Sign Report" flowable:type="http"/>
+    <sequenceFlow id="l2" sourceRef="sign" targetRef="publish"/>
+    <serviceTask id="publish" name="Publish Result" flowable:type="http"/>
+    <sequenceFlow id="l3" sourceRef="publish" targetRef="end"/>
+    <endEvent id="end" name="Result Recorded"/>
+  </process>
+</definitions>
