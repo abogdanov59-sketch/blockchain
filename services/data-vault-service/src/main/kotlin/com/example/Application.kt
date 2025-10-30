@@ -215,23 +215,23 @@ class DataVaultRepository(
 
         transaction(database) {
             VaultAssets.insert { row ->
-                row[id] = assetId
-                row[tenantId] = request.tenantId
-                row[type] = request.type
-                row[metadataHash] = request.metadataHash
-                row[state] = request.state
-                row[ownerOrg] = request.ownerOrg
-                row[nonce] = CryptoToolkit.base64Encode(envelope.nonce)
-                row[aad] = CryptoToolkit.base64Encode(envelope.aad)
-                row[ciphertext] = CryptoToolkit.base64Encode(envelope.ciphertext)
-                row[tag] = CryptoToolkit.base64Encode(envelope.tag)
-                row[wrappedDek] = wrapped.wrappedDek
-                row[dekAlgo] = wrapped.dekAlgo
-                row[tmkId] = wrapped.tmkId
-                row[tmkVersion] = wrapped.tmkVersion
-                row[blindIndex] = blindIndex
-                row[createdAt] = createdAt
-                row[updatedAt] = createdAt
+                row[VaultAssets.id] = assetId
+                row[VaultAssets.tenantId] = request.tenantId
+                row[VaultAssets.type] = request.type
+                row[VaultAssets.metadataHash] = request.metadataHash
+                row[VaultAssets.state] = request.state
+                row[VaultAssets.ownerOrg] = request.ownerOrg
+                row[VaultAssets.nonce] = CryptoToolkit.base64Encode(envelope.nonce)
+                row[VaultAssets.aad] = CryptoToolkit.base64Encode(envelope.aad)
+                row[VaultAssets.ciphertext] = CryptoToolkit.base64Encode(envelope.ciphertext)
+                row[VaultAssets.tag] = CryptoToolkit.base64Encode(envelope.tag)
+                row[VaultAssets.wrappedDek] = wrapped.wrappedDek
+                row[VaultAssets.dekAlgo] = wrapped.dekAlgo
+                row[VaultAssets.tmkId] = wrapped.tmkId
+                row[VaultAssets.tmkVersion] = wrapped.tmkVersion
+                row[VaultAssets.blindIndex] = blindIndex
+                row[VaultAssets.createdAt] = createdAt
+                row[VaultAssets.updatedAt] = createdAt
             }
         }
 
@@ -334,7 +334,7 @@ class DataVaultRepository(
 }
 
 object VaultAssets : Table("vault_assets") {
-    val id = uuid("id").primaryKey()
+    val id = uuid("id")
     val tenantId = varchar("tenant_id", 64)
     val type = varchar("type", 64)
     val metadataHash = varchar("metadata_hash", 128)
@@ -351,6 +351,7 @@ object VaultAssets : Table("vault_assets") {
     val blindIndex = varchar("blind_index", 128)
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
+    override val primaryKey = PrimaryKey(id)
 }
 
 class NotFoundException(message: String) : RuntimeException(message)
