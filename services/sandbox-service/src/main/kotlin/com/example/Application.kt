@@ -14,6 +14,7 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopPreparing
@@ -267,13 +268,13 @@ class SandboxRepository(private val database: Database, private val config: Sand
 
         transaction(database) {
             SandboxSessions.insert { row ->
-                row[id] = sessionId
-                row[tenantId] = request.tenantId
-                row[context] = request.context ?: config.defaultContext
-                row[status] = "ACTIVE"
-                row[nonceField] = sessionNonce
-                row[createdAt] = now
-                row[expiresAtField] = expiresAt
+                row[SandboxSessions.id] = sessionId
+                row[SandboxSessions.tenantId] = request.tenantId
+                row[SandboxSessions.context] = request.context ?: config.defaultContext
+                row[SandboxSessions.status] = "ACTIVE"
+                row[SandboxSessions.nonceField] = sessionNonce
+                row[SandboxSessions.createdAt] = now
+                row[SandboxSessions.expiresAtField] = expiresAt
             }
         }
 
@@ -345,14 +346,14 @@ class SandboxRepository(private val database: Database, private val config: Sand
         val createdAt = Instant.now()
         transaction(database) {
             SandboxRecords.insert { row ->
-                row[id] = recordId
-                row[sessionId] = sessionId
-                row[assetId] = UUID.fromString(envelope.assetId)
-                row[aad] = CryptoToolkit.base64Encode(sandboxEnvelope.aad)
-                row[ciphertext] = CryptoToolkit.base64Encode(sandboxEnvelope.ciphertext)
-                row[tag] = CryptoToolkit.base64Encode(sandboxEnvelope.tag)
-                row[nonce] = CryptoToolkit.base64Encode(sandboxEnvelope.nonce)
-                row[createdAt] = createdAt
+                row[SandboxRecords.id] = recordId
+                row[SandboxRecords.sessionId] = sessionId
+                row[SandboxRecords.assetId] = UUID.fromString(envelope.assetId)
+                row[SandboxRecords.aad] = CryptoToolkit.base64Encode(sandboxEnvelope.aad)
+                row[SandboxRecords.ciphertext] = CryptoToolkit.base64Encode(sandboxEnvelope.ciphertext)
+                row[SandboxRecords.tag] = CryptoToolkit.base64Encode(sandboxEnvelope.tag)
+                row[SandboxRecords.nonce] = CryptoToolkit.base64Encode(sandboxEnvelope.nonce)
+                row[SandboxRecords.createdAt] = createdAt
             }
         }
         SandboxRecordDto(
@@ -378,12 +379,12 @@ class SandboxRepository(private val database: Database, private val config: Sand
         )
         transaction(database) {
             SandboxProposals.insert { row ->
-                row[id] = UUID.randomUUID()
-                row[sessionRef] = UUID.fromString(session.sessionId)
-                row[assetId] = UUID.fromString(request.assetId)
-                row[diffHash] = hash
-                row[comment] = request.comment
-                row[createdAt] = now
+                row[SandboxProposals.id] = UUID.randomUUID()
+                row[SandboxProposals.sessionRef] = UUID.fromString(session.sessionId)
+                row[SandboxProposals.assetId] = UUID.fromString(request.assetId)
+                row[SandboxProposals.diffHash] = hash
+                row[SandboxProposals.comment] = request.comment
+                row[SandboxProposals.createdAt] = now
             }
         }
         return proposal
@@ -392,7 +393,7 @@ class SandboxRepository(private val database: Database, private val config: Sand
     fun markSubmitted(sessionId: UUID) {
         transaction(database) {
             SandboxSessions.update({ SandboxSessions.id eq sessionId }) {
-                it[status] = "SUBMITTED"
+                it[SandboxSessions.status] = "SUBMITTED"
             }
         }
     }
@@ -400,7 +401,7 @@ class SandboxRepository(private val database: Database, private val config: Sand
     fun closeSession(sessionId: UUID, minioClient: MinioClient, bucket: String) {
         transaction(database) {
             SandboxSessions.update({ SandboxSessions.id eq sessionId }) {
-                it[status] = "CLOSED"
+                it[SandboxSessions.status] = "CLOSED"
             }
             SandboxRecords.select { SandboxRecords.sessionId eq sessionId }.forEach { record ->
                 val objectName = "${sessionId}/${record[SandboxRecords.assetId]}"
