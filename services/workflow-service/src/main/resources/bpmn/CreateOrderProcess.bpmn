@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+             xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+             xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+             targetNamespace="http://example.com/workflows">
+  <process id="CreateOrderProcess" name="Create Order Process" isExecutable="true">
+    <startEvent id="start" name="Request Received"/>
+    <sequenceFlow id="flow1" sourceRef="start" targetRef="encrypt"/>
+    <serviceTask id="encrypt" name="Encrypt & Persist" flowable:type="http" flowable:async="true"/>
+    <sequenceFlow id="flow2" sourceRef="encrypt" targetRef="notify"/>
+    <serviceTask id="notify" name="Notify Stakeholders" flowable:type="mail"/>
+    <sequenceFlow id="flow3" sourceRef="notify" targetRef="end"/>
+    <endEvent id="end" name="Order Created"/>
+  </process>
+</definitions>

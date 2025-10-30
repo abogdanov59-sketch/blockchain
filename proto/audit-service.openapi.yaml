@@ -1,0 +1,116 @@
+openapi: 3.0.3
+info:
+  title: Audit Service API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8093
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+  /audit/events:
+    post:
+      summary: Append audit event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppendAuditEventRequest'
+      responses:
+        '201':
+          description: Event persisted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditEvent'
+  /audit/events/{assetId}:
+    get:
+      summary: List audit events by asset
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Audit events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditEvent'
+  /audit/chain/head:
+    get:
+      summary: Current hash chain head
+      responses:
+        '200':
+          description: Chain head
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChainHead'
+components:
+  schemas:
+    AppendAuditEventRequest:
+      type: object
+      properties:
+        tenantId:
+          type: string
+        assetId:
+          type: string
+        category:
+          type: string
+        action:
+          type: string
+        payload:
+          type: string
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+        - tenantId
+        - assetId
+        - category
+        - action
+        - payload
+    AuditEvent:
+      type: object
+      properties:
+        eventId:
+          type: string
+        tenantId:
+          type: string
+        assetId:
+          type: string
+        category:
+          type: string
+        action:
+          type: string
+        payloadHash:
+          type: string
+        previousHash:
+          type: string
+        chainHash:
+          type: string
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        createdAt:
+          type: string
+        position:
+          type: integer
+    ChainHead:
+      type: object
+      properties:
+        lastHash:
+          type: string
+        updatedAt:
+          type: string

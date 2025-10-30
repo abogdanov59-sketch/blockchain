@@ -1,0 +1,160 @@
+openapi: 3.0.3
+info:
+  title: Data Vault Service API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8089
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: OK
+  /vault/assets:
+    post:
+      summary: Create encrypted asset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAssetRequest'
+      responses:
+        '201':
+          description: Asset created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateAssetResponse'
+  /vault/assets/{id}:
+    get:
+      summary: Fetch decrypted asset
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: includeCiphertext
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Asset payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecryptedAssetResponse'
+  /vault/assets/{id}/envelope:
+    get:
+      summary: Fetch raw envelope
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Envelope data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeResponse'
+components:
+  schemas:
+    CreateAssetRequest:
+      type: object
+      properties:
+        tenantId:
+          type: string
+        type:
+          type: string
+        metadataHash:
+          type: string
+        state:
+          type: string
+        ownerOrg:
+          type: string
+        plaintext:
+          type: string
+        schemaVersion:
+          type: string
+        tmkVersion:
+          type: integer
+      required:
+        - tenantId
+        - type
+        - metadataHash
+        - state
+        - ownerOrg
+        - plaintext
+    CreateAssetResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        tenantId:
+          type: string
+        metadataHash:
+          type: string
+        wrappedDek:
+          type: string
+        tmkId:
+          type: string
+        tmkVersion:
+          type: integer
+        createdAt:
+          type: string
+        storageBucket:
+          type: string
+    DecryptedAssetResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        tenantId:
+          type: string
+        type:
+          type: string
+        state:
+          type: string
+        ownerOrg:
+          type: string
+        metadataHash:
+          type: string
+        plaintext:
+          type: string
+        aad:
+          type: string
+        ciphertext:
+          type: string
+        tag:
+          type: string
+    EnvelopeResponse:
+      type: object
+      properties:
+        cipherAlgo:
+          type: string
+        nonce:
+          type: string
+        aad:
+          type: string
+        ciphertext:
+          type: string
+        tag:
+          type: string
+        wrappedDek:
+          type: string
+        dekAlgo:
+          type: string
+        tmkId:
+          type: string
+        tmkVersion:
+          type: integer
+        tenantId:
+          type: string
+        assetId:
+          type: string
